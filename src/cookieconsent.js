@@ -1014,16 +1014,19 @@
       serviceDefinitions: {
         inverse: function() {
           return {
-            // This service responds with JSON, so we simply need to parse it and return the country code
-            url: 'https://us-central1-inverse-production.cloudfunctions.net/index/geo',
-            headers: ['Accept: application/json'],
+            // This service responds with JSON, but they do not have CORS set, so we must use JSONP and provide a callback
+            // The `{callback}` is automatically rewritten by the tool
+            url: 'https://us-central1-inverse-production.cloudfunctions.net/index/geo?callback={callback}',
+            isScript: true, // this is JSONP, therefore we must set it to run as a script
             callback: function(done, response) {
               try{
                 var json = JSON.parse(response);
+                console.log("good", json);
                 return json.error ? toError(json) : {
                   code: json.country
                 };
               } catch (err) {
+                console.log("bad", err);
                 return toError({error: 'Invalid response ('+err+')'});
               }
             }
