@@ -11,7 +11,7 @@
     hasClass: function(element, selector) {
       var s = ' ';
       return element.nodeType === 1 &&
-        (s + element.className + s).replace(/[\n\t]/g, s).indexOf(s + selector + s) >= 0;
+          (s + element.className + s).replace(/[\n\t]/g, s).indexOf(s + selector + s) >= 0;
     },
 
     addClass: function(element, className) {
@@ -34,7 +34,7 @@
       var value = '; ' + document.cookie;
       var parts = value.split('; ' + name + '=');
       return parts.length != 2 ?
-        undefined : parts.pop().split(';').shift();
+          undefined : parts.pop().split(';').shift();
     },
 
     setCookie: function(name, value, expiryDays, domain, path) {
@@ -84,7 +84,7 @@
     // only used for hashing json objects (used for hash mapping palette objects, used when custom colours are passed through JavaScript)
     hash: function(str) {
       var hash = 0,
-        i, chr, len;
+          i, chr, len;
       if (str.length === 0) return hash;
       for (i = 0, len = str.length; i < len; ++i) {
         chr = str.charCodeAt(i);
@@ -116,7 +116,7 @@
 
     // used to change color on highlight
     getLuminance: function(hex) {
-      var num = parseInt(this.normaliseHex(hex), 16), 
+      var num = parseInt(this.normaliseHex(hex), 16),
           amt = 38,
           R = (num >> 16) + amt,
           B = (num >> 8 & 0x00FF) + amt,
@@ -369,8 +369,8 @@
 
       // the full markup either contains the wrapper or it does not (for multiple instances)
       var cookiePopup = this.options.window
-        .replace('{{classes}}', getPopupClasses.call(this).join(' '))
-        .replace('{{children}}', getPopupInnerMarkup.call(this));
+          .replace('{{classes}}', getPopupClasses.call(this).join(' '))
+          .replace('{{children}}', getPopupInnerMarkup.call(this));
 
       // if user passes html, use it instead
       var customHTML = this.options.overrideHTML;
@@ -561,11 +561,7 @@
 
     // opens the popup if no answer has been given
     CookiePopup.prototype.autoOpen = function(options) {
-      if (!this.hasAnswered() && this.options.enabled) {
-        this.open();
-      } else if (this.hasAnswered() && this.options.revokable) {
-        this.toggleRevokeButton(true);
-      }
+      !this.hasAnswered() && this.options.enabled && this.open();
     };
 
     CookiePopup.prototype.setStatus = function(status) {
@@ -821,8 +817,8 @@
             'border-color: ' + button.border,
             'background-color: ' + button.background
           ];
-          
-          if(button.background != 'transparent') 
+
+          if(button.background != 'transparent')
             colorStyles[prefix + ' .cc-btn:hover, ' + prefix + ' .cc-btn:focus'] = [
               'background-color: ' + getHoverColour(button.background)
             ];
@@ -892,7 +888,7 @@
         var str = array[i];
         // if regex matches or string is equal, return true
         if ((str instanceof RegExp && str.test(search)) ||
-          (typeof str == 'string' && str.length && str === search)) {
+            (typeof str == 'string' && str.length && str === search)) {
           return true;
         }
       }
@@ -991,57 +987,35 @@
 
       // the order that services will be attempted in
       services: [
-        'freegeoip',
-        'ipinfo',
-        'maxmind'
+        'inverse'
 
         /*
 
-        // 'ipinfodb' requires some options, so we define it using an object
-        // this object will be passed to the function that defines the service
+         // 'ipinfodb' requires some options, so we define it using an object
+         // this object will be passed to the function that defines the service
 
-        {
-          name: 'ipinfodb',
-          interpolateUrl: {
-            // obviously, this is a fake key
-            api_key: 'vOgI3748dnIytIrsJcxS7qsDf6kbJkE9lN4yEDrXAqXcKUNvjjZPox3ekXqmMMld'
-          },
-        },
+         {
+         name: 'ipinfodb',
+         interpolateUrl: {
+         // obviously, this is a fake key
+         api_key: 'vOgI3748dnIytIrsJcxS7qsDf6kbJkE9lN4yEDrXAqXcKUNvjjZPox3ekXqmMMld'
+         },
+         },
 
-        // as well as defining an object, you can define a function that returns an object
+         // as well as defining an object, you can define a function that returns an object
 
-        function () {
-          return {name: 'ipinfodb'};
-        },
+         function () {
+         return {name: 'ipinfodb'};
+         },
 
-        */
+         */
       ],
 
       serviceDefinitions: {
-
-        freegeoip: function() {
-          return {
-            // This service responds with JSON, but they do not have CORS set, so we must use JSONP and provide a callback
-            // The `{callback}` is automatically rewritten by the tool
-            url: '//freegeoip.net/json/?callback={callback}',
-            isScript: true, // this is JSONP, therefore we must set it to run as a script
-            callback: function(done, response) {
-              try{
-                var json = JSON.parse(response);
-                return json.error ? toError(json) : {
-                  code: json.country_code
-                };
-              } catch (err) {
-                return toError({error: 'Invalid response ('+err+')'});
-              }
-            }
-          }
-        },
-
-        ipinfo: function() {
+        inverse: function() {
           return {
             // This service responds with JSON, so we simply need to parse it and return the country code
-            url: '//ipinfo.io',
+            url: 'https://us-central1-inverse-production.cloudfunctions.net/index/geo',
             headers: ['Accept: application/json'],
             callback: function(done, response) {
               try{
@@ -1054,58 +1028,8 @@
               }
             }
           }
-        },
-
-        // This service requires an option to define `key`. Options are proived using objects or functions
-        ipinfodb: function(options) {
-          return {
-            // This service responds with JSON, so we simply need to parse it and return the country code
-            url: '//api.ipinfodb.com/v3/ip-country/?key={api_key}&format=json&callback={callback}',
-            isScript: true, // this is JSONP, therefore we must set it to run as a script
-            callback: function(done, response) {
-              try{
-                var json = JSON.parse(response);
-                return json.statusCode == 'ERROR' ? toError({error: json.statusMessage}) : {
-                  code: json.countryCode
-                };
-              } catch (err) {
-                return toError({error: 'Invalid response ('+err+')'});
-              }
-            }
-          }
-        },
-
-        maxmind: function() {
-          return {
-            // This service responds with a JavaScript file which defines additional functionality. Once loaded, we must
-            // make an additional AJAX call. Therefore we provide a `done` callback that can be called asynchronously
-            url: '//js.maxmind.com/js/apis/geoip2/v2.1/geoip2.js',
-            isScript: true, // this service responds with a JavaScript file, so it must be run as a script
-            callback: function(done) {
-              // if everything went okay then `geoip2` WILL be defined
-              if (!window.geoip2) {
-                done(new Error('Unexpected response format. The downloaded script should have exported `geoip2` to the global scope'));
-                return;
-              }
-
-              geoip2.country(function(location) {
-                try {
-                  done({
-                    code: location.country.iso_code
-                  });
-                } catch (err) {
-                  done(toError(err));
-                }
-              }, function(err) {
-                done(toError(err));
-              });
-
-              // We can't return anything, because we need to wait for the second AJAX call to return.
-              // Then we can 'complete' the service by passing data or an error to the `done` callback.
-            }
-          }
-        },
-      },
+        }
+      }
     };
 
     function Location(options) {
